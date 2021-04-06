@@ -60,7 +60,6 @@ void CMy11118132View::OnDraw(CDC* pDC)
 	if (pDoc->m_pDib != NULL) {
 		pDoc->m_pDib->Draw(pDC->m_hDC,0,0);
 	}
-	// TODO: 在此处为本机数据添加绘制代码
 }
 
 

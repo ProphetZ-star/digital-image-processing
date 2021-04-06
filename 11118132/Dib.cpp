@@ -11,6 +11,7 @@ CDib::CDib(void):m_pDibBits(NULL),m_pGrayValueCount(NULL)
 
 CDib::CDib( CDib &Dib ):m_pDibBits(NULL),m_pGrayValueCount(NULL)
 {
+
 	if(&Dib == NULL)
 	{
 		return;
@@ -45,7 +46,9 @@ CDib::CDib( CDib &Dib ):m_pDibBits(NULL),m_pGrayValueCount(NULL)
 
 CDib::~CDib(void)
 {
-	m_pDibBits = NULL;
+	//if (m_pDibBits != NULL)
+	//	delete m_pDibBits;
+	//m_pDibBits = NULL;
 	if (m_pGrayValueCount != NULL)
 	{
 		delete []m_pGrayValueCount;
@@ -659,110 +662,72 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 
  void CDib::smooth()
  {
-	 // TODO: 在此处添加实现代码.
+	 // TODO: 在此处添加实现代码.3*3
+	 int** pixel = AddZeros();
+	 int** result;
+	 int laplace[9] = { 1,1,1,1,1,1,1,1,1 };
 
-	 for (int i = 0; i < m_nHeight; i++){
-		 *(m_pDibBits + i * m_nWidthBytes + 0) = (*(m_pDibBits + i * m_nWidthBytes + 0) + *(m_pDibBits + i * m_nWidthBytes + 0) + *(m_pDibBits + i * m_nWidthBytes + 1)) / 3;
-		 for (int j = 1; j < (m_nWidthBytes-1); j++) {
-			 *(m_pDibBits + i * m_nWidthBytes + j) = (*(m_pDibBits + i * m_nWidthBytes + j - 1) + *(m_pDibBits + i * m_nWidthBytes + j + 1) + *(m_pDibBits + i * m_nWidthBytes + j)) / 3;
+	 result = Conv(pixel, laplace);
+
+	 for (int i = 0; i < m_nHeight; ++i) {
+		 for (int j = 0; j < m_nWidthBytes; ++j) {
+			 *(m_pDibBits + i * m_nWidthBytes + j) = result[i][j]/9;
+
 		 }
-		 *(m_pDibBits + i * m_nWidthBytes + (m_nWidthBytes - 1)) = (*(m_pDibBits + i * m_nWidthBytes + (m_nWidthBytes - 1)) + *(m_pDibBits + i * m_nWidthBytes + (m_nWidthBytes - 1)) + *(m_pDibBits + i * m_nWidthBytes + (m_nWidthBytes - 2))) / 3;
+		 delete[] pixel[i];
+		 delete[] result[i];
 	 }
-	 for (int j = 0; j < m_nWidthBytes; j++) {
-		 *(m_pDibBits + 0 * m_nWidthBytes + j) = (*(m_pDibBits + 0 * m_nWidthBytes + j) + *(m_pDibBits + 0 * m_nWidthBytes + j) + *(m_pDibBits + 1 * m_nWidthBytes + j)) / 3;
-		 for (int i = 1; i < (m_nHeight - 1); i++) {
-			 *(m_pDibBits + i * m_nWidthBytes + j) = (*(m_pDibBits + (i + 1) * m_nWidthBytes + j) + *(m_pDibBits + i * m_nWidthBytes + j) + *(m_pDibBits + (i - 1) * m_nWidthBytes + j)) / 3;
-		 }
-		 *(m_pDibBits + (m_nHeight - 1) * m_nWidthBytes + j) = (*(m_pDibBits + (m_nHeight - 1) * m_nWidthBytes + j) + *(m_pDibBits + (m_nHeight - 1) * m_nWidthBytes + j) + *(m_pDibBits + (m_nHeight - 2) * m_nWidthBytes + j)) / 3;
-	 }	
+	 delete[] pixel;
+	 delete[] result;
  }
 
 
 
  void CDib::Sobel()
  {
-	 // TODO: 在此处添加实现代码.
-	 int *pixel = new int[(m_nHeight+2)*(m_nWidthBytes+2)];
-	 for (int i = 0; i <= (m_nHeight+1); i++)
-	 {
-		 for (int j = 0; j <= (m_nWidthBytes+1); j++)
-		 {
-			 if (i == 0) {
-				 if (j == 0) {
-					 pixel[0] = *(m_pDibBits);
-				 }
-				 else {
-					 if (j == (m_nWidthBytes + 1)) {
-						 pixel[(m_nWidthBytes + 1)] = *(m_pDibBits + j - 2);
-					 }
-					 else
-					 {
-						 pixel[j] = *(m_pDibBits + j - 1);
-					 }
-				 }
-			 }
-			 if (i == m_nHeight + 1) {
-				 if (j == 0)
-					 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 2) * m_nWidthBytes + j);
-				 else {
-					 if (j == m_nWidthBytes + 1)
-						 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 2) * m_nWidthBytes + j - 2);
-					 else {
-						 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 2)*m_nWidthBytes + j - 1);
-					 }
-				 }
-			 }
-			 else {
-				 if (j == 0)
-					 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 1)*m_nWidthBytes);
-				 else {
-					 if (j == m_nWidthBytes + 1)
-						 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 1)*m_nWidthBytes + j - 2);
-					 else
-						 pixel[i*(m_nWidthBytes + 2) + j] = *(m_pDibBits + (i - 1)*m_nWidthBytes + j - 1);
-				 }
-			 }
-		 }
-	 }
+	 int** pixel = AddZeros();
+	 int** result1;
+	 int** result2;
+	 int Sobel1[9] = { -1,-2,-1,0,0,0,1,2,1 };
+	 int Sobel2[9] = { -1,0,1,-2,0,2,-1,0,1 };
+
+	 result1 = Conv(pixel, Sobel1);
+	 result2 = Conv(pixel, Sobel2);
+
+
 	 for (int i = 0; i < m_nHeight; ++i) {
 		 for (int j = 0; j < m_nWidthBytes; ++j) {
-			 *(m_pDibBits + i * m_nWidthBytes + j) = abs(pixel[(i + 2)*(m_nWidthBytes + 2) + j ] + 2 * pixel[(i + 2)*(m_nWidthBytes + 2) + j + 1] + pixel[(i + 2)*(m_nWidthBytes + 2) + j + 2] - pixel[(i + 0)*(m_nWidthBytes + 2) + j + 0] - 2 * pixel[(i + 0)*(m_nWidthBytes + 2) + j + 1] - pixel[(i + 0)*(m_nWidthBytes + 2) + j + 2]) +
-				 abs(pixel[(i + 0)*(m_nWidthBytes + 2) + j + 2] + 2 * pixel[(i + 1)*(m_nWidthBytes + 2) + j + 2] + pixel[(i + 2)*(m_nWidthBytes + 2) + j + 2] - pixel[(i + 0)*(m_nWidthBytes + 2) + j + 0] + 2 * pixel[(i + 1)*(m_nWidthBytes + 2) + j + 0] + pixel[(i + 2)*(m_nWidthBytes + 2) + j + 0]);
+			 *(m_pDibBits + i * m_nWidthBytes + j) = abs(result1[i][j])+abs(result2[i][j]);
+			 
 		 }
+		 delete[] pixel[i];
+		 delete[] result1[i];
+		 delete[] result2[i];
 	 }
 	 delete[] pixel;
+	 delete[] result1;
+	 delete[] result2;
  }
 
 
  void CDib::Laplace()
  {
-	 // TODO: 在此处添加实现代码.
-	 int *pixel = new int[m_nHeight*m_nWidthBytes];
-	 pixel[0] = (*(m_pDibBits + 0 * m_nWidthBytes + 0) * 2 + *(m_pDibBits + 0 * m_nWidthBytes + 1) + *(m_pDibBits + 1 * m_nWidthBytes + 0) - 4 * (*(m_pDibBits + 0 * m_nWidthBytes + 0)));
-	 for (int j = 1; j < (m_nWidthBytes - 1); ++j) {
-		 pixel[j] = (*(m_pDibBits + 0 * m_nWidthBytes + j+1) + *(m_pDibBits + 0 * m_nWidthBytes +j- 1) + *(m_pDibBits + 0 * m_nWidthBytes + j) + *(m_pDibBits + (j+1) * m_nWidthBytes + j) - 4 * (*(m_pDibBits + 0 * m_nWidthBytes + j)));
-	 }
-	 pixel[m_nWidthBytes-1] = (*(m_pDibBits + m_nWidthBytes - 1) * 2 + *(m_pDibBits + m_nWidthBytes - 2) + *(m_pDibBits + (1) * m_nWidthBytes + m_nWidthBytes - 1) - 4 * (*(m_pDibBits + m_nWidthBytes - 1)));
-	 for (int i = 1; i < (m_nHeight-1); i++) {
-		 pixel[i*m_nWidthBytes] = (*(m_pDibBits + m_nWidthBytes * i) + *(m_pDibBits + i * m_nWidthBytes + 1) + *(m_pDibBits + (i - 1) * m_nWidthBytes) + *(m_pDibBits + (i + 1) * m_nWidthBytes) - 4 * (*(m_pDibBits + m_nWidthBytes * i)));
-		 for (int j = 1; j < (m_nWidthBytes - 1); j++) {
-			 pixel[i * m_nWidthBytes + j] = (*(m_pDibBits + i * m_nWidthBytes + j - 1) + *(m_pDibBits + i * m_nWidthBytes + j + 1) + *(m_pDibBits + i * m_nWidthBytes + j)) / 3;
+	 int** pixel = AddZeros();
+	 int** result;
+	 int laplace[9] = { 0,1,0,1,-4,1,0,1,0 };
+
+	 result = Conv(pixel, laplace);
+
+	 for (int i = 0; i < m_nHeight; ++i) {
+		 for (int j = 0; j < m_nWidthBytes; ++j) {
+			 *(m_pDibBits + i * m_nWidthBytes + j) = result[i][j];
+
 		 }
-		 pixel[(i+1)*m_nWidthBytes-1] = (*(m_pDibBits + (i + 1)*m_nWidthBytes - 1) + *(m_pDibBits + (i + 1)*m_nWidthBytes - 2) + *(m_pDibBits + (i + 2)*m_nWidthBytes - 1) + *(m_pDibBits + (i + 0)*m_nWidthBytes - 1) - 4 * (*(m_pDibBits + (i + 1)*m_nWidthBytes - 1)));
-	 }
-	 pixel[(m_nHeight-1)*m_nWidthBytes] = (*(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes) * 2 + *(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes+1) + *(m_pDibBits + (m_nHeight - 2)*m_nWidthBytes) - 4 * (*(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes)));
-	 for (int j = 1; j < (m_nWidthBytes - 1); ++j) {
-		 pixel[(m_nHeight - 1)*m_nWidthBytes+j] = (*(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes + j + 1) + *(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes + j - 1) + *(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes + j) + *(m_pDibBits + (m_nHeight - 2)*m_nWidthBytes + j) - 4 * (*(m_pDibBits + (m_nHeight - 1)*m_nWidthBytes + j)));
-	 }
-	 pixel[m_nHeight*m_nWidthBytes - 1] = (*(m_pDibBits + m_nHeight * m_nWidthBytes - 1) * 2 + *(m_pDibBits + m_nHeight * m_nWidthBytes - 2) + *(m_pDibBits + (m_nHeight-1) * m_nWidthBytes - 1) - 4 * (*(m_pDibBits + m_nHeight * m_nWidthBytes - 1)));
-	 for (int i = 0; i < m_nHeight; i++)
-	 {
-		 for (int j = 0; j < m_nWidthBytes; j++)
-		 {
-			 *(m_pDibBits + i * m_nWidthBytes + j) = *(m_pDibBits + i * m_nWidthBytes + j) - pixel[i * m_nWidthBytes + j];
-		 }
+		 delete[] pixel[i];
+		 delete[] result[i];
 	 }
 	 delete[] pixel;
+	 delete[] result;
  }
 
 
@@ -773,9 +738,12 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 {
 		 Destroy();
 	 }
-	 Create(512, 512, 8, 0);
 	 m_nWidth = 512;
 	 m_nHeight = 512;
+	 m_nWidthBytes = 512;
+	 m_nBitCount = 8;
+	 Create(512, 512, 8, 0);
+	 m_pDibBits = (unsigned char*)GetBits() + (m_nHeight - 1)*GetPitch();
 	 if (IsIndexed())
 	 {
 		 int nColors = 256;
@@ -789,9 +757,7 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 		 SetColorTable(0, nColors, pal);
 		 delete[] pal;
 	 }
-	 m_nWidthBytes = 512;
-	 m_nBitCount = 8;
-	 m_pDibBits = (unsigned char*)GetBits() + (m_nHeight - 1)*GetPitch();
+	 
 	 //memcpy(m_pDibBits, Dib.m_pDibBits, m_nHeight*m_nWidthBytes);
 	 int W = 50, H = 50;
 	 for (int i = 0; i < W; ++i) {
@@ -851,6 +817,7 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 }
 	 FFT_2D(pCTData, m_nWidth, m_nHeight, pCFData);				// 傅立叶正变换
 	 int *pixel=new int[m_nWidth*m_nHeight];
+	 long max = 0;
 	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
 	 {
 		 for (x = 0; x < m_nWidth; x++)
@@ -859,23 +826,62 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 			 dReal = pCTData[y*nTransWidth + x].real();		// 实部
 			 dImag = pCTData[y*nTransWidth + x].imag();		// 虚部
 			 
-			 if (unchValue < 0)
-			 {
-				 unchValue = 0;
-			 }
-			 if (unchValue > 0xff)
-			 {
-				 unchValue = 0xff;
-			 }
 			 pixel[y*m_nWidth+x] = sqrt(dReal*dReal + dImag* dImag);
+			 if (max < sqrt(dReal*dReal + dImag * dImag))
+				 max = sqrt(dReal*dReal + dImag * dImag);
 			 // 指向DIB第y行，第x个象素的指针
-			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
-			 *lpSrc = (BYTE)unchValue;
+			 //lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
+			 //*lpSrc = (BYTE)unchValue
 		 }
 	 }
-	 
+	 for (int i = 0; i < m_nHeight; ++i) {
+		 for (int j = 0; j < m_nWidthBytes; ++j) {
+			 *(m_pDibBits + (i)* m_nWidthBytes + (j)) = pixel[i*m_nWidthBytes + j]*255 / max;
+		 }
+	 }
 	 delete pCTData;										// 释放内存
 	 delete pCFData;										// 释放内存
 	 pCTData = NULL;
 	 pCFData = NULL;
+ }
+
+
+ int** CDib::Conv(int** pixel, int kernel[9])
+ {
+	 // TODO: 在此处添加实现代码.
+	 int **result = new int*[(m_nHeight)];
+	 for (int i = 0; i < (m_nHeight); ++i) {
+		 result[i] = new int[m_nWidthBytes];
+	 }
+	 int j = 0;
+	 for (int i = 0;i< m_nHeight;++i) {
+		 for (j = 0; j < m_nWidthBytes; ++j) {
+			 result[i][j] = pixel[i][j]*kernel[0] + pixel[i][j+1]* kernel[1] + pixel[i][j+2]* kernel[2]
+				 + pixel[i+1][j]* kernel[3] + pixel[i+1][j+1]* kernel[4] + pixel[i+1][j+2]* kernel[5]
+				 + pixel[i+2][j]* kernel[6] + pixel[i+2][j+1]* kernel[7] + pixel[i+2][j+2]* kernel[8];
+		 }
+
+	 }
+	 return result;
+ }
+
+
+
+ int** CDib::AddZeros()
+ {
+	 // TODO: 在此处添加实现代码.
+	 int **pixel = new int*[(m_nHeight + 2)];
+	 for (int i = 0; i < (m_nHeight + 2); ++i) {
+		 pixel[i] = new int[m_nWidthBytes + 2];
+	 }
+	 for (int i = 0; i < (m_nHeight + 2); ++i) {
+		 for (int j = 0; j < (m_nWidthBytes+2); ++j) {
+			 if (i<1 || i>(m_nWidthBytes - 2) || j<1 || j>(m_nHeight  - 2))
+				 pixel[i][j] = 0;
+			 else {
+				 pixel[i][j] = *(m_pDibBits + (i - 1)*m_nWidthBytes + (j - 1));
+			 }
+		 }
+	 }
+	 return pixel;
  }

@@ -57,5 +57,7 @@ public:
 	void Laplace();
 	void White();
 	void FFT_VIEW();
+	int** Conv(int** pixel,int kernel[9]);
+	int** AddZeros();
 };
 

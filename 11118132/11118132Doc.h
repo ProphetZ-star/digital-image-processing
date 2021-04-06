@@ -62,4 +62,5 @@ public:
 	afx_msg void OnSobel();
 	afx_msg void OnWhite();
 	afx_msg void OnFFT();
+//	afx_msg void OnFileOpen();
 };

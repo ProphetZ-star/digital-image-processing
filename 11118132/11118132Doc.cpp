@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CMy11118132Doc, CDocument)
 	ON_COMMAND(ID_32781, &CMy11118132Doc::OnSobel)
 	ON_COMMAND(ID_32783, &CMy11118132Doc::OnWhite)
 	ON_COMMAND(ID_32784, &CMy11118132Doc::OnFFT)
+	//ON_COMMAND(ID_FILE_OPEN, &CMy11118132Doc::OnFileOpen)
 END_MESSAGE_MAP()
 
 
@@ -163,7 +164,10 @@ void CMy11118132Doc::Dump(CDumpContext& dc) const
 
 BOOL CMy11118132Doc::OnOpenDocument(LPCTSTR lpszPathName)
 {
+
 	if (!CDocument::OnOpenDocument(lpszPathName))
+		
+
 		return FALSE;
 
 	// TODO:  在此添加您专用的创建代码
@@ -176,7 +180,6 @@ BOOL CMy11118132Doc::OnOpenDocument(LPCTSTR lpszPathName)
 		delete m_pBuffer;
 		m_pBuffer = NULL;
 	}
-	//delete m_pDib;
 	m_pDib = new CDib;
 	m_pDib->LoadFile(lpszPathName);
 	m_pBuffer = new CDib(*m_pDib);
@@ -317,8 +320,14 @@ void CMy11118132Doc::OnWhite()
 		delete m_pDib;
 		m_pDib = NULL;
 	}
+	if (m_pBuffer != NULL) {
+		delete m_pBuffer;
+		m_pBuffer = NULL;
+	}
+	//delete m_pDib;
 	m_pDib = new CDib;
 	m_pDib->White();
+	m_pBuffer = new CDib(*m_pDib);
 	UpdateAllViews(NULL);
 }
 
@@ -327,15 +336,14 @@ void CMy11118132Doc::OnFFT()
 {
 	// TODO: 在此添加命令处理程序代码
 	if (m_pDib != NULL){
-		//unsigned char *DibBits=m_pDib.(unsigned char*)GetBits() + (m_nHeight - 1)*GetPitch();;
-		//m_pDib->FFT();
-		//long Width = m_pDib->GetWidth();
-		//long Height = m_pDib->GetHeight();
-		//long WidthBytes = abs(m_pDib->GetPitch());
-		//int BitCount = m_pDib->GetBPP();
-		//unsigned char *DibBits = (unsigned char*)m_pDib->GetBits() + (Height - 1)*m_pDib->GetPitch();
-		//m_pDib->FFT(DibBits,Width,Height);
 		m_pDib->FFT_VIEW();
 		UpdateAllViews(NULL);
 	}
 }
+
+
+//void CMy11118132Doc::OnFileOpen()
+//{
+//	// TODO: 在此添加命令处理程序代码
+//	//OnOpenDocument(LPCTSTR lpszPathName);
+//}
