@@ -18,6 +18,7 @@ CDib::CDib( CDib &Dib ):m_pDibBits(NULL),m_pGrayValueCount(NULL)
 	{
 		Destroy();
 	}
+	//int n=Dib.GetBPP();
 	Create(Dib.GetWidth(),Dib.GetHeight(),Dib.GetBPP(),0);
 	m_nWidth = Dib.m_nWidth;
 	m_nHeight = Dib.m_nHeight;
@@ -292,7 +293,6 @@ void CDib::FFT_1D(complex<double> * pCTData, complex<double> * pCFData, int nLev
 	pCW		=	NULL	;
 	pCWork1 =	NULL	;
 	pCWork2 =	NULL	;
-
 }
 /*************************************************************************
  *

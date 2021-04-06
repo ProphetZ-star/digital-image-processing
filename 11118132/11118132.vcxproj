@@ -216,6 +216,7 @@
     <ResourceCompile Include="My11118132.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="res\My11118132.rc2" />
   </ItemGroup>
   <ItemGroup>
