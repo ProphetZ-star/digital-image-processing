@@ -60,4 +60,6 @@ public:
 	afx_msg void OnSmooth();
 	afx_msg void OnLaplace();
 	afx_msg void OnSobel();
+	afx_msg void OnWhite();
+	afx_msg void OnFFT();
 };

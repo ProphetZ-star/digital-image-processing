@@ -35,6 +35,8 @@ BEGIN_MESSAGE_MAP(CMy11118132Doc, CDocument)
 	ON_COMMAND(ID_32777, &CMy11118132Doc::OnSmooth)
 	ON_COMMAND(ID_Menu, &CMy11118132Doc::OnLaplace)
 	ON_COMMAND(ID_32781, &CMy11118132Doc::OnSobel)
+	ON_COMMAND(ID_32783, &CMy11118132Doc::OnWhite)
+	ON_COMMAND(ID_32784, &CMy11118132Doc::OnFFT)
 END_MESSAGE_MAP()
 
 
@@ -174,6 +176,7 @@ BOOL CMy11118132Doc::OnOpenDocument(LPCTSTR lpszPathName)
 		delete m_pBuffer;
 		m_pBuffer = NULL;
 	}
+	//delete m_pDib;
 	m_pDib = new CDib;
 	m_pDib->LoadFile(lpszPathName);
 	m_pBuffer = new CDib(*m_pDib);
@@ -301,6 +304,38 @@ void CMy11118132Doc::OnSobel()
 	// TODO: 在此添加命令处理程序代码
 	if (m_pDib != NULL) {
 		m_pDib->Sobel();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnWhite()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL)
+	{
+		delete m_pDib;
+		m_pDib = NULL;
+	}
+	m_pDib = new CDib;
+	m_pDib->White();
+	UpdateAllViews(NULL);
+}
+
+
+void CMy11118132Doc::OnFFT()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL){
+		//unsigned char *DibBits=m_pDib.(unsigned char*)GetBits() + (m_nHeight - 1)*GetPitch();;
+		//m_pDib->FFT();
+		//long Width = m_pDib->GetWidth();
+		//long Height = m_pDib->GetHeight();
+		//long WidthBytes = abs(m_pDib->GetPitch());
+		//int BitCount = m_pDib->GetBPP();
+		//unsigned char *DibBits = (unsigned char*)m_pDib->GetBits() + (Height - 1)*m_pDib->GetPitch();
+		//m_pDib->FFT(DibBits,Width,Height);
+		m_pDib->FFT_VIEW();
 		UpdateAllViews(NULL);
 	}
 }
