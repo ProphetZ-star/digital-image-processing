@@ -829,9 +829,6 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 			 pixel[y*m_nWidth+x] = sqrt(dReal*dReal + dImag* dImag);
 			 if (max < sqrt(dReal*dReal + dImag * dImag))
 				 max = sqrt(dReal*dReal + dImag * dImag);
-			 // 指向DIB第y行，第x个象素的指针
-			 //lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
-			 //*lpSrc = (BYTE)unchValue
 		 }
 	 }
 	 for (int i = 0; i < m_nHeight; ++i) {
@@ -843,6 +840,7 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 delete pCFData;										// 释放内存
 	 pCTData = NULL;
 	 pCFData = NULL;
+	 delete[] pixel;
  }
 
 
