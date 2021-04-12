@@ -20,7 +20,7 @@ public:
 public:
 	enum chan_color {chan_red=1,chan_green,chan_blue,chan_black};
 	enum HSIChannel{HUE=0,SATURATION,INTENSITY};
-
+	enum type{L_Ideal,L_BW,L_Gauss,H_Ideal,H_BW,H_Gauss};
 public:
 	void LoadFile(LPCTSTR lpszPathName);
 
@@ -59,5 +59,7 @@ public:
 	void FFT_VIEW();
 	int** Conv(int** pixel,int kernel[9]);
 	int** AddZeros();
+	void Filtering(enum type t, bool pad);
+	double** Filter(int type1, int type2, int p, int q);
 };
 

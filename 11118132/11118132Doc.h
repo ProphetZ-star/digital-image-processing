@@ -63,4 +63,16 @@ public:
 	afx_msg void OnWhite();
 	afx_msg void OnFFT();
 //	afx_msg void OnFileOpen();
+	afx_msg void OnIdeal_LOW();
+	afx_msg void OnIdeal_L_0();
+	afx_msg void OnBW_L();
+	afx_msg void OnBW_L_0();
+	afx_msg void OnGauss_L_0();
+	afx_msg void OnGauss_L();
+	afx_msg void OnIdeal_H_0();
+	afx_msg void OnIdeal_H();
+	afx_msg void OnBW_H_0();
+	afx_msg void OnBW_H();
+	afx_msg void OnGauss_H_0();
+	afx_msg void OnGauss_H();
 };

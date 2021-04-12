@@ -698,11 +698,12 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 for (int i = 0; i < m_nHeight; ++i) {
 		 for (int j = 0; j < m_nWidthBytes; ++j) {
 			 *(m_pDibBits + i * m_nWidthBytes + j) = abs(result1[i][j])+abs(result2[i][j]);
-			 
 		 }
-		 delete[] pixel[i];
 		 delete[] result1[i];
 		 delete[] result2[i];
+	 }
+	 for (int i = 0; i < m_nHeight + 2; ++i) {
+		 delete[] pixel[i];
 	 }
 	 delete[] pixel;
 	 delete[] result1;
@@ -721,10 +722,11 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 for (int i = 0; i < m_nHeight; ++i) {
 		 for (int j = 0; j < m_nWidthBytes; ++j) {
 			 *(m_pDibBits + i * m_nWidthBytes + j) = result[i][j];
-
 		 }
-		 delete[] pixel[i];
 		 delete[] result[i];
+	 }
+	 for (int i = 0; i < m_nHeight + 2; ++i) {
+		 delete[] pixel[i];
 	 }
 	 delete[] pixel;
 	 delete[] result;
@@ -762,7 +764,7 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 int W = 50, H = 50;
 	 for (int i = 0; i < W; ++i) {
 		 for (int j = 0; j < H; ++j) {
-			 *(m_pDibBits + (i+ m_nHeight/2 -H/2) * m_nWidthBytes + (j+m_nWidthBytes/2-W/2)) = 255;
+			 *(m_pDibBits + (i+ (m_nHeight+1)/2 -H/2) * m_nWidthBytes + (j+(m_nWidthBytes+1)/2-W/2)) = 255;
 		 }
 	 }
  }
@@ -816,24 +818,23 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 		 }
 	 }
 	 FFT_2D(pCTData, m_nWidth, m_nHeight, pCFData);				// 傅立叶正变换
-	 int *pixel=new int[m_nWidth*m_nHeight];
-	 long max = 0;
+	 double *pixel=new double[m_nWidth*m_nHeight];
+	 //long max = 0;
 	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
 	 {
 		 for (x = 0; x < m_nWidth; x++)
 		 {
 			 //需要考虑信号的正负问题以及实际所用的图象数据是灰度值还是原始数据
-			 dReal = pCTData[y*nTransWidth + x].real();		// 实部
-			 dImag = pCTData[y*nTransWidth + x].imag();		// 虚部
-			 
-			 pixel[y*m_nWidth+x] = sqrt(dReal*dReal + dImag* dImag);
-			 if (max < sqrt(dReal*dReal + dImag * dImag))
-				 max = sqrt(dReal*dReal + dImag * dImag);
+			 dReal = pCFData[y*nTransWidth + x].real();		// 实部
+			 dImag = pCFData[y*nTransWidth + x].imag();		// 虚部
+			 pixel[y*m_nWidth + x] = log2(1 + sqrt(dReal*dReal + dImag * dImag)) / log2(1.06);
+			 //if (max < sqrt(dReal*dReal + dImag * dImag))
+			//	 max = sqrt(dReal*dReal + dImag * dImag);
 		 }
 	 }
 	 for (int i = 0; i < m_nHeight; ++i) {
 		 for (int j = 0; j < m_nWidthBytes; ++j) {
-			 *(m_pDibBits + (i)* m_nWidthBytes + (j)) = pixel[i*m_nWidthBytes + j]*255 / max;
+			 *(m_pDibBits + (i)* m_nWidthBytes + (j)) = pixel[i*m_nWidthBytes + j];
 		 }
 	 }
 	 delete pCTData;										// 释放内存
@@ -882,4 +883,210 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 		 }
 	 }
 	 return pixel;
+ }
+
+
+
+ void CDib::Filtering(enum type t, bool pad)
+ {
+	 // TODO: 在此处添加实现代码.
+	 unsigned char*	lpSrc;							// 指向源图像的指针
+	 int y;										// 循环控制变量
+	 int x;										// 循环控制变量
+	 double dTmpOne;								//存放临时变量
+	 double dTmpTwo;								//存放临时变量
+	 int nTransWidth;								// 傅立叶变换的宽度（2的整数次幂）
+	 int nTransHeight;								// 傅立叶变换的高度（2的整数次幂）
+	 double unchValue;								// 存贮图像各像素灰度的临时变量
+	 complex<double> * pCTData;						// 指向时域数据的指针
+	 complex<double> * pCFData;						// 指向频域数据的指针
+	 // 计算进行傅立叶变换的点数－横向	（2的整数次幂）
+	 if (pad == false) {
+		 //int m_nWidth2 = m_nWidth;
+		 dTmpOne = log(1.0*m_nWidth) / log(2.0);
+		 dTmpTwo = ceil(dTmpOne);
+		 dTmpTwo = pow(2, dTmpTwo);
+		 nTransWidth = (int)dTmpTwo;
+	 }
+	 else {
+		 //int m_nWidth2 = m_nWidth * 2;
+		 dTmpOne = log(2.0*m_nWidth) / log(2.0);
+		 dTmpTwo = ceil(dTmpOne);
+		 dTmpTwo = pow(2, dTmpTwo);
+		 nTransWidth = (int)dTmpTwo;
+	 }
+	 // 计算进行傅立叶变换的点数－纵向 （2的整数次幂）
+	 if (pad == false) {
+		 //int m_nHeight2 = m_nHeight;
+		 dTmpOne = log(1.0*m_nHeight) / log(2.0);
+		 dTmpTwo = ceil(dTmpOne);
+		 dTmpTwo = pow(2, dTmpTwo);
+		 nTransHeight = (int)dTmpTwo;
+	 }
+	 else {
+		 //int m_nHeight2 = m_nHeight * 2;
+		 dTmpOne = log(2.0*m_nHeight) / log(2.0);
+		 dTmpTwo = ceil(dTmpOne);
+		 dTmpTwo = pow(2, dTmpTwo);
+		 nTransHeight = (int)dTmpTwo;
+	 }
+	 double dReal;									// 傅立叶变换的实部
+	 double dImag;									// 傅立叶变换的虚部
+	 pCTData = new complex<double>[nTransWidth * nTransHeight];	// 分配内存
+	 pCFData = new complex<double>[nTransWidth * nTransHeight];	// 分配内存
+	 // 图像数据的宽和高不一定是2的整数次幂，所以pCTData有一部分数据需要补0
+	 for (y = 0; y < nTransHeight; y++)
+	 {
+		 for (x = 0; x < nTransWidth; x++)
+		 {
+			 pCTData[y*nTransWidth + x] = complex<double>(0, 0);		// 补零
+		 }
+	 }
+	 //把图像数据传给pCTData
+	 for (y = 0; y < m_nHeight; y++)
+	 {
+		 for (x = 0; x < m_nWidth; x++)
+		 {
+			 // 指向DIB第y行，第x个象素的指针
+			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
+			 unchValue = (*lpSrc)*pow(-1.0, x + y);
+			 pCTData[y*nTransWidth + x] = complex<double>(unchValue, 0);
+		 }
+	 }
+
+	 FFT_2D(pCTData, nTransWidth, nTransHeight, pCFData);				// 傅立叶正变换
+	 //int *pixel = new int[m_nWidth*m_nHeight];
+	 int type1, type2;
+	 switch (t)
+	 {
+	 case CDib::L_Ideal:
+		 type1 = 0, type2 = 0;
+		 break;
+	 case CDib::L_BW:
+		 type1 = 0, type2 = 1;
+		 break;
+	 case CDib::L_Gauss:
+		 type1 = 0, type2 = 2;
+		 break;
+	 case CDib::H_Ideal:
+		 type1 = 1, type2 = 0;
+		 break;
+	 case CDib::H_BW:
+		 type1 = 1, type2 = 1;
+		 break;
+	 case CDib::H_Gauss:
+		 type1 = 1, type2 = 2;
+		 break;
+	 default:
+		 type1 = -1, type2 = -1;
+		 break;
+	 }
+	 double** F = Filter(type1, type2, nTransWidth, nTransHeight);
+	 for (y = 0; y < nTransHeight; y++)
+	 {
+		 for (x = 0; x < nTransWidth; x++)
+		 {
+			 //需要考虑信号的正负问题以及实际所用的图象数据是灰度值还是原始数据
+			 dReal = pCFData[y*nTransWidth + x].real();		// 实部
+			 dImag = pCFData[y*nTransWidth + x].imag();		// 虚部
+			 pCFData[y*nTransWidth + x].real(dReal*F[y][x]);
+			 pCFData[y*nTransWidth + x].imag(dImag*F[y][x]);
+		 }
+	 }
+	 IFFT_2D(pCFData, pCTData, nTransHeight, nTransWidth); 				// 傅立叶反变换
+	 int max=0, min=256;
+	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
+	 {
+		 for (x = 0; x < m_nWidth; x++)
+		 {
+			 //需要考虑信号的正负问题以及实际所用的图象数据是灰度值还是原始数据
+			 dReal = pCTData[y*nTransWidth + x].real();		// 实部
+			 //dImag = pCTData[y*nTransWidth + x].imag();		// 虚部
+			 unchValue = dReal * pow(-1.0, x + y);
+			 if (unchValue < min) 
+				 min = unchValue;
+			 if (unchValue > max)
+				 max = unchValue;
+			 // 指向DIB第y行，第x个象素的指针
+			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
+			 *lpSrc = (BYTE)unchValue;
+		 }
+	 }
+
+	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
+	 {
+		 for (x = 0; x < m_nWidth; x++)
+		 {
+			 // 指向DIB第y行，第x个象素的指针
+			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
+			 *(m_pDibBits + (m_nHeight - 1 - y)* m_nWidthBytes + (x)) = (*lpSrc - min)*255 / (max - min);
+		 }
+	 }
+	 for (int i = 0; i < nTransHeight;++i) {
+		 delete[] F[i];
+	 }
+	 delete[] F;
+	 delete pCTData;										// 释放内存
+	 delete pCFData;										// 释放内存
+	 pCTData = NULL;
+	 pCFData = NULL; 
+ }
+
+
+
+ double** CDib::Filter(int type1, int type2, int p, int q)
+ {
+	 // TODO: 在此处添加实现代码.
+	 //p长，q高
+	 double **filter = new double*[q];
+	 for (int i = 0; i < (q); ++i) {
+		 filter[i] = new double[p];
+	 }
+	 double D0 = 50;
+	 if (type1 == 0||type1==1) {
+		 //低通滤波器:0,高通:1
+		 if (type2 == 0) {
+			 //理想
+			 for (int i = 0; i < q; ++i) //p长，q高
+			 {
+				 for (int j = 0; j < p; ++j) {
+					 if (sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j)) <= D0) {
+						 filter[i][j] = 1-type1;
+					 }
+					 else
+						 filter[i][j] = type1;
+				 }
+			 }
+			 return filter;
+		 }
+		 else if (type2 == 1) {
+			 //Butter Worth
+			 int n2 = 4 * pow(-1, type1);
+			 for (int i = 0; i < q; ++i) {
+				 for (int j = 0; j < p; ++j) {
+					 double D = sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j));
+					 filter[i][j] = 1 / (1 + pow(D / D0, n2));
+				 }
+			 }
+			 return filter;
+		 }
+		 else if (type2 == 2) {
+			 //Gauss
+			 int n = pow(-1,type1);
+			 for (int i = 0; i < q; ++i) {
+				 for (int j = 0; j < p; ++j) {
+					 double D = sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j));
+					 double n2 = -pow(D, 2) / (2 * pow(D0, 2));
+					 filter[i][j] = 1 - n + n * pow(Ei, n2);
+				 }
+			 }
+			 return filter;
+		 }
+		 else
+			 return nullptr;
+	 }
+	 else
+	 {
+		 return nullptr;
+	 }
  }
