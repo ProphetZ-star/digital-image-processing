@@ -50,6 +50,11 @@ BEGIN_MESSAGE_MAP(CMy11118132Doc, CDocument)
 	ON_COMMAND(ID_32794, &CMy11118132Doc::OnBW_H)
 	ON_COMMAND(ID_32795, &CMy11118132Doc::OnGauss_H_0)
 	ON_COMMAND(ID_32796, &CMy11118132Doc::OnGauss_H)
+	ON_COMMAND(ID_32797, &CMy11118132Doc::OnCenter_filter)
+	ON_COMMAND(ID_32798, &CMy11118132Doc::OnDeterioration)
+	ON_COMMAND(ID_32799, &CMy11118132Doc::OnA_filter)
+	ON_COMMAND(ID_32800, &CMy11118132Doc::OnWeiner)
+	ON_COMMAND(ID_32801, &CMy11118132Doc::OnFBP)
 END_MESSAGE_MAP()
 
 
@@ -474,4 +479,51 @@ void CMy11118132Doc::OnGauss_H()
 		m_pDib->Filtering(m_pDib->H_Gauss, false);
 		UpdateAllViews(NULL);
 	}
+}
+
+
+void CMy11118132Doc::OnCenter_filter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->Center_filter();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnDeterioration()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->Filtering(m_pDib->Tur_D, false);
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnA_filter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->Filtering(m_pDib->Anti_F, false);
+		UpdateAllViews(NULL);
+	}
+
+}
+
+
+void CMy11118132Doc::OnWeiner()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->Filtering(m_pDib->Wiener, false);
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnFBP()
+{
+	// TODO: 在此添加命令处理程序代码
 }

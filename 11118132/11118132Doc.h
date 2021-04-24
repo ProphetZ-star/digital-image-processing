@@ -75,4 +75,9 @@ public:
 	afx_msg void OnBW_H();
 	afx_msg void OnGauss_H_0();
 	afx_msg void OnGauss_H();
+	afx_msg void OnCenter_filter();
+	afx_msg void OnDeterioration();
+	afx_msg void OnA_filter();
+	afx_msg void OnWeiner();
+	afx_msg void OnFBP();
 };

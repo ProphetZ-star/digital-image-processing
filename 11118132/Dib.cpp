@@ -716,9 +716,7 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 int** pixel = AddZeros();
 	 int** result;
 	 int laplace[9] = { 0,1,0,1,-4,1,0,1,0 };
-
 	 result = Conv(pixel, laplace);
-
 	 for (int i = 0; i < m_nHeight; ++i) {
 		 for (int j = 0; j < m_nWidthBytes; ++j) {
 			 *(m_pDibBits + i * m_nWidthBytes + j) = result[i][j];
@@ -909,7 +907,6 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 		 nTransWidth = (int)dTmpTwo;
 	 }
 	 else {
-		 //int m_nWidth2 = m_nWidth * 2;
 		 dTmpOne = log(2.0*m_nWidth) / log(2.0);
 		 dTmpTwo = ceil(dTmpOne);
 		 dTmpTwo = pow(2, dTmpTwo);
@@ -953,7 +950,6 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 			 pCTData[y*nTransWidth + x] = complex<double>(unchValue, 0);
 		 }
 	 }
-
 	 FFT_2D(pCTData, nTransWidth, nTransHeight, pCFData);				// 傅立叶正变换
 	 //int *pixel = new int[m_nWidth*m_nHeight];
 	 int type1, type2;
@@ -977,116 +973,171 @@ void CDib::IFFT_2D(complex<double> * pCFData, complex<double> * pCTData, int nWi
 	 case CDib::H_Gauss:
 		 type1 = 1, type2 = 2;
 		 break;
+	 case CDib::Tur_D:
+		 type1 = 2, type2 = 0;
+		 break;
+	 case CDib::Anti_F:
+		 type1 = 2, type2 = 1;
+		 break;
+	 case CDib::Wiener:
+		 type1 = 2, type2 = 2;
+		 break;
 	 default:
 		 type1 = -1, type2 = -1;
 		 break;
 	 }
-	 double** F = Filter(type1, type2, nTransWidth, nTransHeight);
+	 double F;
 	 for (y = 0; y < nTransHeight; y++)
 	 {
 		 for (x = 0; x < nTransWidth; x++)
 		 {
-			 //需要考虑信号的正负问题以及实际所用的图象数据是灰度值还是原始数据
-			 dReal = pCFData[y*nTransWidth + x].real();		// 实部
-			 dImag = pCFData[y*nTransWidth + x].imag();		// 虚部
-			 pCFData[y*nTransWidth + x].real(dReal*F[y][x]);
-			 pCFData[y*nTransWidth + x].imag(dImag*F[y][x]);
+			 F = Filter(type1, type2, nTransWidth, nTransHeight, x, y);
+			 pCFData[y*nTransWidth + x] *= F;
 		 }
 	 }
 	 IFFT_2D(pCFData, pCTData, nTransHeight, nTransWidth); 				// 傅立叶反变换
-	 int max=0, min=256;
+	 //int max=0, min=256;
 	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
 	 {
 		 for (x = 0; x < m_nWidth; x++)
 		 {
 			 //需要考虑信号的正负问题以及实际所用的图象数据是灰度值还是原始数据
 			 dReal = pCTData[y*nTransWidth + x].real();		// 实部
-			 //dImag = pCTData[y*nTransWidth + x].imag();		// 虚部
 			 unchValue = dReal * pow(-1.0, x + y);
-			 if (unchValue < min) 
-				 min = unchValue;
-			 if (unchValue > max)
-				 max = unchValue;
-			 // 指向DIB第y行，第x个象素的指针
+			 if (unchValue < 0)
+			 {
+				 unchValue = 0;
+			 }
+			 if (unchValue > 0xff)
+			 {
+				 unchValue = 0xff;
+			 }
 			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
 			 *lpSrc = (BYTE)unchValue;
 		 }
 	 }
-
-	 for (y = 0; y < m_nHeight; y++)								// 反变换的数据传给lpDIBBits
-	 {
-		 for (x = 0; x < m_nWidth; x++)
-		 {
-			 // 指向DIB第y行，第x个象素的指针
-			 lpSrc = (unsigned char*)m_pDibBits + m_nWidth * (m_nHeight - 1 - y) + x;
-			 *(m_pDibBits + (m_nHeight - 1 - y)* m_nWidthBytes + (x)) = (*lpSrc - min)*255 / (max - min);
-		 }
-	 }
-	 for (int i = 0; i < nTransHeight;++i) {
-		 delete[] F[i];
-	 }
-	 delete[] F;
 	 delete pCTData;										// 释放内存
 	 delete pCFData;										// 释放内存
 	 pCTData = NULL;
 	 pCFData = NULL; 
  }
 
-
-
- double** CDib::Filter(int type1, int type2, int p, int q)
+ double CDib::Filter(int type1, int type2, int p, int q,int x,int y)
  {
 	 // TODO: 在此处添加实现代码.
 	 //p长，q高
-	 double **filter = new double*[q];
-	 for (int i = 0; i < (q); ++i) {
-		 filter[i] = new double[p];
-	 }
+	 double filter=0;
 	 double D0 = 50;
+	 double D = sqrt((q / 2 - y)*(q / 2 - y) + (p / 2 - x)*(p / 2 - x));
 	 if (type1 == 0||type1==1) {
 		 //低通滤波器:0,高通:1
 		 if (type2 == 0) {
-			 //理想
-			 for (int i = 0; i < q; ++i) //p长，q高
-			 {
-				 for (int j = 0; j < p; ++j) {
-					 if (sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j)) <= D0) {
-						 filter[i][j] = 1-type1;
-					 }
-					 else
-						 filter[i][j] = type1;
-				 }
+			 //理想	  
+			 if (D <= D0) {
+				 filter = 1 - type1;
 			 }
+			 else
+				 filter = type1;
 			 return filter;
 		 }
 		 else if (type2 == 1) {
 			 //Butter Worth
-			 int n2 = 4 * pow(-1, type1);
-			 for (int i = 0; i < q; ++i) {
-				 for (int j = 0; j < p; ++j) {
-					 double D = sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j));
-					 filter[i][j] = 1 / (1 + pow(D / D0, n2));
-				 }
-			 }
+			 //p长，q高
+			 int n2 = 4 * pow(-1, type1); 
+			 filter = 1 / (1 + pow(D / D0, n2));
 			 return filter;
 		 }
 		 else if (type2 == 2) {
 			 //Gauss
 			 int n = pow(-1,type1);
-			 for (int i = 0; i < q; ++i) {
-				 for (int j = 0; j < p; ++j) {
-					 double D = sqrt((q / 2 - i)*(q / 2 - i) + (p / 2 - j)*(p / 2 - j));
-					 double n2 = -pow(D, 2) / (2 * pow(D0, 2));
-					 filter[i][j] = 1 - n + n * pow(Ei, n2);
-				 }
-			 }
+			 double n2 = -pow(D, 2) / (2 * pow(D0, 2));
+			 filter = 1 - n + n * pow(Ei, n2);
 			 return filter;
 		 }
 		 else
-			 return nullptr;
+			 return 0;
+	 }
+	 else if(type1==2)
+	 {   //湍流退化与逆滤波
+		 double k = 0.001; double t = 5;
+		 t = t / 6;
+		 double temp= (q / 2 - y)*(q / 2 - y) + (p / 2 - x)*(p / 2 - x);
+		 temp = -k * pow(temp, t);
+		 filter = pow(Ei,temp);
+		 if (type2 == 0) {
+			 return filter;
+		 }
+		 else if (type2 == 1) {
+			 if (D <= 110) {
+				 return 1 / filter;
+			 }
+			 else
+				 return 0;
+		 }
+		 else if (type2 == 2) {
+			 //维纳滤波
+			 int K = 50;
+			 filter = filter / (filter*filter + 0.002);
+			 return filter;
+		 }
 	 }
 	 else
-	 {
-		 return nullptr;
-	 }
+		 return 0;
  }
+
+ void CDib::Center_filter()
+ {
+	 // TODO: 在此处添加实现代码.
+	 int **pixel = new int*[(m_nHeight )];
+     int **result = new int*[(m_nHeight)];
+	 for (int i = 0; i < (m_nHeight ); ++i) {
+		 pixel[i] = new int[m_nWidthBytes ];
+		 result[i] = new int[m_nWidthBytes];
+	 }
+	 for (int i = 0; i < (m_nHeight ); ++i) {
+		 for (int j = 0; j < (m_nWidthBytes); ++j) {
+			 pixel[i][j] = *(m_pDibBits + (i)*m_nWidthBytes + (j));
+		     result[i][j] = pixel[i][j];
+		 }
+	 }
+	 int j = 0;
+	 for (int i = 1; i < m_nHeight-2; ++i) {
+		 for (j = 1; j < m_nWidthBytes-2; ++j) {
+			 int temp[9] = { pixel[i][j] , pixel[i][j + 1] , pixel[i][j + 2],
+				 pixel[i + 1][j] , pixel[i + 1][j + 1] , pixel[i + 1][j + 2]
+				 , pixel[i + 2][j] , pixel[i + 2][j + 1] , pixel[i + 2][j + 2]};
+			 result[i][j] = Sort_center(temp);
+		 }
+	 }
+	 for (int i = 0; i < m_nHeight; ++i) {
+		 for (int j = 0; j < m_nWidthBytes; ++j) {
+			 *(m_pDibBits + i * m_nWidthBytes + j) = result[i][j];
+		 }
+		 delete[] result[i];delete[] pixel[i];
+	 }
+	 delete[] pixel;
+	 delete[] result;
+ }
+
+ int CDib::Sort_center(int x[9])
+ {
+	 // TODO: 在此处添加实现代码.
+	 int max[5] = {0};
+	 int temp;
+	 for (int i = 0; i < 5; ++i) {
+		 for (int j = 0; j < 9; ++j) {
+			 if (max[i]<x[j]) {
+				 max[i] = x[j];
+				 temp = j;
+			 }
+		 }
+		 for (int j = 0; j < 9; ++j) {
+			 if (x[j]==max[i]) {
+				 x[j]=0;
+				 break;
+			 }
+		 }
+	 }
+	 return max[4];
+ }
+
