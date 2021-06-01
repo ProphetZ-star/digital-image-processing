@@ -16,7 +16,8 @@ Histogram::Histogram(CDib* pDib,CWnd* pParent /*=nullptr*/)
 {
 	if (pDib!=NULL) {
 		m_pGrayValue = pDib->GrayValueCount();
-		m_GrayCount = pDib->GetMaxColorTableEntries();
+		m_GrayCount = 256;
+
 	}
 }
 

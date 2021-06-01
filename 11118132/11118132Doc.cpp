@@ -55,6 +55,26 @@ BEGIN_MESSAGE_MAP(CMy11118132Doc, CDocument)
 	ON_COMMAND(ID_32799, &CMy11118132Doc::OnA_filter)
 	ON_COMMAND(ID_32800, &CMy11118132Doc::OnWeiner)
 	ON_COMMAND(ID_32801, &CMy11118132Doc::OnFBP)
+	ON_COMMAND(ID_32804, &CMy11118132Doc::OnLoadFile)
+	ON_COMMAND(ID_32808, &CMy11118132Doc::OnBackground)
+	ON_COMMAND(ID_32809, &CMy11118132Doc::OnR)
+	ON_COMMAND(ID_32810, &CMy11118132Doc::OnG)
+	ON_COMMAND(ID_32811, &CMy11118132Doc::OnB)
+	ON_COMMAND(ID_32812, &CMy11118132Doc::OnH)
+	ON_COMMAND(ID_32813, &CMy11118132Doc::OnS)
+	ON_COMMAND(ID_32814, &CMy11118132Doc::OnI)
+	ON_COMMAND(ID_32802, &CMy11118132Doc::OnLarge)
+	ON_COMMAND(ID_32803, &CMy11118132Doc::OnSmall)
+	ON_COMMAND(ID_32815, &CMy11118132Doc::Onbinary)
+	ON_COMMAND(ID_32816, &CMy11118132Doc::Oncomplementary)
+	ON_COMMAND(ID_32817, &CMy11118132Doc::OnErosion)
+	ON_COMMAND(ID_32818, &CMy11118132Doc::Onexpand)
+	ON_COMMAND(ID_32819, &CMy11118132Doc::Onfill)
+	ON_COMMAND(ID_32822, &CMy11118132Doc::OnHaar)
+	ON_COMMAND(ID_32823, &CMy11118132Doc::OnDaubechies)
+	ON_COMMAND(ID_32820, &CMy11118132Doc::Onoutline)
+	ON_COMMAND(ID_32821, &CMy11118132Doc::OnDrawline)
+	ON_COMMAND(ID_32824, &CMy11118132Doc::Ontest)
 END_MESSAGE_MAP()
 
 
@@ -526,4 +546,251 @@ void CMy11118132Doc::OnWeiner()
 void CMy11118132Doc::OnFBP()
 {
 	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		long* result = m_pDib->FBP();
+		int r[256 * 256] = { 0 };
+		for (int i = 0; i < 256 * 256; ++i) {
+			r[i]=result[i];
+			//result[i] = result[i] / 5;
+		}
+		delete m_pDib;
+		m_pDib = NULL;
+		m_pDib = new CDib;
+		m_pDib->blank(result);
+		//m_pBuffer = new CDib(*m_pDib);
+		UpdateAllViews(NULL);
+		delete result;
+	}
+}
+
+
+void CMy11118132Doc::OnLoadFile()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL)
+	{
+		delete m_pDib;
+		m_pDib = NULL;
+	}
+	if (m_pBuffer != NULL) {
+		delete m_pBuffer;
+		m_pBuffer = NULL;
+	}
+	m_pDib = new CDib;
+	m_pDib->LoadFromTxtFile();
+	m_pBuffer = new CDib(*m_pDib);
+	UpdateAllViews(NULL);
+}
+
+
+void CMy11118132Doc::OnBackground()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL)
+	{
+		delete m_pDib;
+	    m_pDib = NULL;
+	}
+	if (m_pBuffer != NULL) {
+		delete m_pBuffer;
+		m_pBuffer = NULL;
+	}
+	m_pDib = new CDib;
+	m_pDib->background();
+	m_pBuffer = new CDib(*m_pDib);
+	UpdateAllViews(NULL);
+}
+
+
+void CMy11118132Doc::OnR()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->R();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnG()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->G();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnB()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->B();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnH()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->H();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnS()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->S();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnI()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->I();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnLarge()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		long* result=m_pDib->Large();
+		delete m_pDib;
+		m_pDib = new CDib;
+		m_pDib->init(614,614,result);
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnSmall()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		long* result = m_pDib->Small();
+		delete m_pDib;
+		m_pDib = new CDib;
+		m_pDib->init(409, 409, result);
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::Onbinary()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->binaryzation();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::Oncomplementary()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->complementary();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnErosion()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->Erosion();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::Onexpand()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->expand();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::Onfill()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->fill();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnHaar()
+{
+	// TODO: 在此添加命令处理程序代码
+	//未完成
+	if (m_pDib != NULL) {
+		m_pDib->Haar();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnDaubechies()
+{
+	// TODO: 在此添加命令处理程序代码
+	//未完成
+}
+
+
+void CMy11118132Doc::Onoutline()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		m_pDib->outline();
+		UpdateAllViews(NULL);
+	}
+}
+
+
+void CMy11118132Doc::OnDrawline()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		int *line = m_pDib->DrawLine();
+		delete m_pDib;
+		m_pDib = NULL;
+		if (m_pBuffer != NULL)
+		{
+			m_pDib = new CDib(*m_pBuffer);
+		}
+		m_pDib->DrawLine2(line);
+		UpdateAllViews(NULL);
+		delete line;
+	}
+}
+
+
+void CMy11118132Doc::Ontest()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (m_pDib != NULL) {
+		double a[8] = { 1,1,1,1,1,1,0,0 };
+		double *d = a;
+		double c[8];
+		UpdateAllViews(NULL);
+	}
 }

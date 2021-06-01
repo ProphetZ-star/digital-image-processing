@@ -1,6 +1,8 @@
 #pragma once
 #include "atlimage.h"
-
+#include <iostream> 
+#include<fstream>
+#include<cstdlib>
 #include <complex>
 using namespace std;
 
@@ -58,10 +60,33 @@ public:
 	void White();
 	void FFT_VIEW();
 	int** Conv(int** pixel,int kernel[9]);
-	int** AddZeros();
+	int** AddZeros(int type);
 	void Filtering(enum type t, bool pad);
 	double Filter(int type1, int type2, int p, int q,int x,int y);
 	void Center_filter();
 	int Sort_center(int x[9]);
+	long* FBP();
+	void LoadFromTxtFile();
+	void blank(long* pixel);
+	void background();
+	void R();
+	void G();
+	void B();
+	void H();
+	void S();
+	void I();
+	long* Large();
+	long* Small();
+	void init(int width, int height, long* pixel);
+	void binaryzation();
+	void complementary();
+	void Erosion();
+	void expand();
+	void fill();
+	void outline();
+	int* DrawLine();
+	void DrawLine2(int* line);
+	void Haar();
+	void Daubechies();
 };
 
